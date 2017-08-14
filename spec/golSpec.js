@@ -92,4 +92,21 @@ describe('Game', function (){
 
 		expect(evolve(initialState)).toEqual(resultState);
 	});
+
+	it('can evolve grid of smaller dimensions (2x2 in this case)', function(){
+		console.log("\n\nTEST 6")
+
+		var initialState = [
+			[1,1],
+			[1,0]
+		];
+
+		var resultState = [
+			[1,1],
+			[1,1]
+
+		];
+
+		expect(evolve(initialState)).toEqual(resultState);
+	});
 });

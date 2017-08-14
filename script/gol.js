@@ -8,12 +8,12 @@ module.exports = function(){
 	*/
 	
 	function evolve(gridState, iterations){
-		var generations = iterations || 1;
+		iterations = iterations || 1;
 		console.log("Start evolution...");
 
 
 		printGrid(gridState, "Start Result");
-		for(var i = 0; i < generations; i++) {
+		for(var i = 0; i < iterations; i++) {
 
 			// create a copy of the current grid state that can be updated with the new cell values
 			var newState = new Array();
