@@ -53,11 +53,29 @@
 
 	describe('Game', function (){
 		var evolve = __webpack_require__(2)().evolve;
+		// 0 represents a dead cell
+		// 1 represents a living cell
 
 		it('can evolve an inital empty grid', function(){
+			console.log("TEST 1")
 
-			// 0 represents a dead cell
-			// 1 represents a living cell
+			var initialState = [
+				[0,0,0],
+				[0,0,0],
+				[0,0,0]
+			];
+
+			var resultState = [
+				[0,0,0],
+				[0,0,0],
+				[0,0,0]
+			];
+
+			expect(evolve(initialState)).toEqual(resultState);
+		});
+
+		it('can evolve a grid with the mid-row cells alive', function(){
+			console.log("TEST 2")
 
 			var initialState = [
 				[0,0,0],
@@ -73,8 +91,61 @@
 
 			expect(evolve(initialState)).toEqual(resultState);
 		});
-	});
 
+		it('can evolve a grid with the mid-row cells alive twice', function(){
+			console.log("TEST 3")
+
+			var initialState = [
+				[0,0,0],
+				[1,1,1],
+				[0,0,0]
+			];
+
+			var resultState = [
+				[0,0,0],
+				[1,1,1],
+				[0,0,0]
+			];
+
+			expect(evolve(evolve(initialState))).toEqual(resultState);
+		});
+
+		it('can evolve a grid with a more unusual distribution of live cells', function(){
+			console.log("TEST 4")
+
+			var initialState = [
+				[1,0,0],
+				[0,1,1],
+				[1,1,0]
+			];
+
+			var resultState = [
+				[0,1,0],
+				[0,0,1],
+				[1,1,1]
+			];
+
+			expect(evolve(initialState)).toEqual(resultState);
+		});
+
+		it('can evolve a non-square (but still rectangular) grid', function(){
+			console.log("TEST 5")
+
+			var initialState = [
+				[0,1,1,1,1],
+				[0,0,0,0,1],
+				[0,0,0,0,1]
+			];
+
+			var resultState = [
+				[0,0,1,1,1],
+				[0,0,1,0,1],
+				[0,0,0,0,0]
+			];
+
+			expect(evolve(initialState)).toEqual(resultState);
+		});
+	});
 
 /***/ }),
 /* 2 */
@@ -83,61 +154,78 @@
 	module.exports = function(){
 
 		/*
-			Scenarios:
-			1) allCellsDead -> All cells will remain dead!
-			2) livingNeighbours < 2 -> Underpopulation! The cell will die!
-			3) livingNeighbours > 3 -> Overcrowding! The cell will die!
-			4) (livingNeighbours == 2 || livingNeighbours == 3) && cellIsAlive -> The cell will live!
-			5) livingNeighbours == 3 && cellIsDead -> The cell will become alive!
-
 			Assumptions:
-			- A cells existing state does not matter if it has three living neighbours as it will be alive regardless
+			- A cell's existing state does not matter if it has three living neighbours as it will be alive regardless
 			- The grid will be a perfect rectangle
+			- Living grid cells will be represented by a 1 and dead grid cells will be represented by a 0
 		*/
 		
 		function evolve(gridState){
-			var newState = [];
-			console.log("Started...");
+			console.log("Start evolution...");
 
-			for(var x = 0; x < gridState.length; x++) {
-				for(var y = 0; x < gridState[0].length; y++) {
-					livingNeighbours = getNeighbours(gridState, x, y);
-					if(livingNeighbours < 2) newState[x][y] = 0; // dead
-					if(livingNeighbours > 3) newState[x][y] = 0; // dead
-					if(livingNeighbours == 2 && gridState[x][y] == 1) newState[x][y] = 1; // survive
-					if(livingNeighbours == 3) newState[x][y] == 1; // alive
+			// create a copy of the current grid state that can be updated with the new cell values
+			var newState = new Array();
+			for(var y = 0; y < gridState.length; y++) {
+				newState[y] = gridState[y].slice();
+			}
+
+			printGrid(gridState, "Start Result");
+
+			// loop through the entire grid
+			for(var y = 0; y < gridState.length; y++) {
+				for(var x = 0; x < gridState[0].length; x++) {
+					var livingNeighbours = getNeighbours(gridState, y, x);
+					if(livingNeighbours < 2) newState[y][x] = 0; // Scenario 1: Underpopulation
+					if(livingNeighbours > 3) newState[y][x] = 0; // Scenario 2: Overcrowding
+					if(livingNeighbours == 2 && gridState[y][x] == 1) newState[y][x] = 1; // Scenario 3: Survival
+					if(livingNeighbours == 3) newState[y][x] = 1; // Scenario 4: Creation of life
 				}
 			}
 
-			console.log("Done!");
+			printGrid(newState, "End Result");
+			console.log("Finished evolution! \n");
+
+			// return the new grid values
 			return newState;
 		}
 
-		function getNeighbours(gridState, x, y) {
-			livingNeighbours = 0;
+		function getNeighbours(gridState, y, x) {
+			var livingNeighbours = 0;
 			
 			// top
-			if (y-1 > 0 && x-1 > 0) livingNeighbours += gridState[x-1, y-1]; // top left cell
-			if (y-1 > 0) livingNeighbours += gridState[x, y-1]; // top cell
-			if (y-1 > 0 && x+1 > 0) livingNeighbours += gridState[x+1, y-1]; // top right cell
+			if (y-1 >= 0 && x-1 >= 0) livingNeighbours += gridState[y-1][x-1]; // top left cell
+			if (y-1 >= 0) livingNeighbours += gridState[y-1][x]; // top cell
+			if (y-1 >= 0 && x+1 < gridState[0].length) livingNeighbours += gridState[y-1][x+1]; // top right cell
 
 			// mid
-			if(x-1 > 0) livingNeighbours += gridState[x-1, y]; // left cell
-			if(x+1 > 0) livingNeighbours += gridState[x+1, y]; // right cell
+			if(x-1 >= 0) livingNeighbours += gridState[y][x-1]; // left cell
+			if(x+1 < gridState[0].length) livingNeighbours += gridState[y][x+1]; // right cell
 
 			// bottom
-			if (y+1 > 0 && x-1 > 0) livingNeighbours += gridState[x-1, y+1]; // bottom left cell
-			if (y+1 > 0) livingNeighbours += gridState[x, y+1]; // bottom cell
-			if (y+1 > 0 && x+1 > 0) livingNeighbours += gridState[x+1, y+1]; // bottom right cell
+			if (y+1 < gridState.length && x-1 >= 0) livingNeighbours += gridState[y+1][x-1]; // bottom left cell
+			if (y+1 < gridState.length) livingNeighbours += gridState[y+1][x]; // bottom cell
+			if (y+1 < gridState.length && x+1 < gridState[0].length) livingNeighbours += gridState[y+1][x+1]; // bottom right cell
 
 			return livingNeighbours;
+		}
+
+		function printGrid(gridState, message) { // debug function
+			message = message || "";
+			console.log(message);
+			for(var y = 0; y < gridState.length; y++) {
+				var newLine = "";
+				for(var x = 0; x < gridState[0].length; x++) {
+					newLine = newLine + gridState[y][x] + " ";
+				}
+				console.log(newLine);
+			}
+			console.log("")
 		}
 
 		return {
 			evolve: evolve
 		};
 	};
-
 
 /***/ })
 /******/ ]);

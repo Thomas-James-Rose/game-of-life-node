@@ -7,27 +7,38 @@ module.exports = function(){
 		- Living grid cells will be represented by a 1 and dead grid cells will be represented by a 0
 	*/
 	
-	function evolve(gridState){
+	function evolve(gridState, iterations){
+		var generations = iterations || 1;
 		console.log("Start evolution...");
 
-		// create a copy of the current grid state that can be updated with the new cell values
-		var newState = new Array();
-		for(var y = 0; y < gridState.length; y++) {
-			newState[y] = gridState[y].slice();
-		}
 
 		printGrid(gridState, "Start Result");
+		for(var i = 0; i < generations; i++) {
 
-		// loop through the entire grid
-		for(var y = 0; y < gridState.length; y++) {
-			for(var x = 0; x < gridState[0].length; x++) {
-				var livingNeighbours = getNeighbours(gridState, y, x);
-				if(livingNeighbours < 2) newState[y][x] = 0; // Scenario 1: Underpopulation
-				if(livingNeighbours > 3) newState[y][x] = 0; // Scenario 2: Overcrowding
-				if(livingNeighbours == 2 && gridState[y][x] == 1) newState[y][x] = 1; // Scenario 3: Survival
-				if(livingNeighbours == 3) newState[y][x] = 1; // Scenario 4: Creation of life
+			// create a copy of the current grid state that can be updated with the new cell values
+			var newState = new Array();
+			for(var y = 0; y < gridState.length; y++) {
+				newState[y] = gridState[y].slice();
 			}
+
+			// loop through the entire grid
+			for(var y = 0; y < gridState.length; y++) {
+				for(var x = 0; x < gridState[0].length; x++) {
+					var livingNeighbours = getNeighbours(gridState, y, x);
+					if(livingNeighbours < 2) newState[y][x] = 0; // Scenario 1: Underpopulation
+					if(livingNeighbours > 3) newState[y][x] = 0; // Scenario 2: Overcrowding
+					if(livingNeighbours == 2 && gridState[y][x] == 1) newState[y][x] = 1; // Scenario 3: Survival
+					if(livingNeighbours == 3) newState[y][x] = 1; // Scenario 4: Creation of life
+				}
+			}
+
+			// update the original grid state with the values of the new state
+			for(var y = 0; y < newState.length; y++) {
+				gridState[y] = newState[y].slice();
+			}
+
 		}
+
 
 		printGrid(newState, "End Result");
 		console.log("Finished evolution! \n");
@@ -66,7 +77,7 @@ module.exports = function(){
 			}
 			console.log(newLine);
 		}
-		console.log("")
+		console.log("");
 	}
 
 	return {
